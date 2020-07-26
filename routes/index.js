@@ -5,7 +5,7 @@ const Url = require('../models/url');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+  res.render('index', { title: 'Shrts' });
 });
 
 router.get('/:shortCode', async (req, res, next) => {
