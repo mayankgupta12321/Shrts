@@ -31,7 +31,13 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
+app.get('*', function(req, res, next) {  
+  console.log(req.secure);
+  if(!req.secure)
+    res.redirect('https://' + req.headers.host + req.url);
+  else
+    next();
+})
 
 app.use('/', indexRouter);
 app.use('/api/url', urlRouter);
