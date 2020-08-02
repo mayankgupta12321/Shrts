@@ -1,11 +1,11 @@
 var express = require('express');
 var router = express.Router();
-
+var app = express();
 const Url = require('../models/url');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Shrts' });
+    res.render('pages/home',{title: 'Shrts'});
 });
 
 router.get('/:shortCode', async (req, res, next) => {
@@ -21,7 +21,7 @@ router.get('/:shortCode', async (req, res, next) => {
     if(url)
       res.redirect(url.longUrl);
     else {
-      res.end("INVALID URL");
+      res.render('pages/error',{title: 'Shrts | Page Not Found'});
     }
     },(err) => next(err))  
   .catch((err) => next(err));

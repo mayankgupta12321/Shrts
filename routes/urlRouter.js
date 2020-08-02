@@ -14,44 +14,71 @@ urlRouter.post('/', async (req,res,next) => {
     var longUrl = req.body.longUrl.trim();
     var baseUrl = config.baseUrl;
     if(!validUrl.isWebUri(longUrl)) {
-        var err = new Error('Long Url not valid');
-        err.status = 400;
-        return next(err);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        var data = {
+            'success': false,
+            'message': 'Long Url not valid'
+        }
+        res.json(data);
+        return;
     }
     if(req.body.shortCode && req.body.shortCode.trim() !== "") {
         var shortCode = req.body.shortCode.trim();
-        var regex = /[^A-Za-z0-9\-\_]+/g;
+        var regex = /[^A-Za-z0-9-_]+/g;
         if(regex.test(shortCode)) {
-            var err = new Error('ShortCode can contain only letters (A-Z),(a-z),(1-9),(-),(_)');
-            err.status = 400;
-            return next(err);
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            var data = {
+                'success': false,
+                'message': 'May Contain (A-Z),(a-z),(1-9),(-),(_)'
+            }
+            res.json(data);
+            return;
+        }
+        if(shortCode.length < 4 && shortCode.length > 0) {
+            res.statusCode = 200;
+            res.setHeader('Content-Type', 'application/json');
+            var data = {
+                'success': false,
+                'message': 'Alias must be atleast 4 characters long'
+            }
+            res.json(data);
+            return;
         }
     }
-    else {         
+    else {
         var shortCode = shortid.generate();
     }
-
     await Url.findOne({"shortCode": shortCode})
         .then(async (url) => {
             if(url) {
-                var err = new Error('shortCode already exists.');
-                err.status = 500;
-                return next(err); 
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                var data = {
+                    'success': false,
+                    'message': 'Alias already exists.'
+                }
+                res.json(data);
+                return; 
             }
-            else {
-                var url = new Url({
-                    "longUrl": longUrl,
-                    "shortCode": shortCode 
-                });
-                await Url.create(url)
-                .then((url) => {
-                    res.statusCode = 200;
-                    res.setHeader('Content-Type', 'application/json');
-                    var shortUrl = baseUrl + url.shortCode;
-                    res.json({"shortUrl": shortUrl });
-                },(err) => next(err))
-                .catch((err) => next(err));
-            }
+            
+            var url = new Url({
+                "longUrl": longUrl,
+                "shortCode": shortCode 
+            });
+            await Url.create(url)
+            .then((url) => {
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                var shortUrl = baseUrl + url.shortCode;
+                var data = {
+                    'success': true,
+                    'shortUrl': shortUrl
+                }
+                res.json(data);
+            },(err) => next(err))
+            .catch((err) => next(err));
     },(err) => next(err))
     .catch((err) => next(err));
 });
