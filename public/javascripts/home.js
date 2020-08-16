@@ -41,8 +41,8 @@ $(document).ready(function(){
     
     $('#shortenBtn')
         .on('click', function(){
-            $('#shortUrlContainer, #status').addClass('hide');
-            
+            $('#shortUrlContainer, #status, #qrImage').addClass('hide');
+            $("#qrImage").attr("src", '');
             var longUrl = $('#longUrl').val();
             var alias = $('#alias').val()
             if(!checkForValidUrl(longUrl)) {
@@ -104,22 +104,22 @@ function urlShorten(longUrl, alias) {
     if(alias.length){
         data.shortCode = alias;
     }
-    console.log(data);
     var xhr = $.ajax({
 		type: 'POST',
     	url: 'https://shrts.herokuapp.com/api/url/',
 		data: data,
 		error: function (err) {
             clearTimeout(t);
+            removeLoader();
             $('#status').html('Server Not Responding, Try again later.').removeClass('hide');
             return 0;
 		},
 		success: function (response) {
             clearTimeout(t);
-            console.log(response);
 			try {
 				handleActions(response);
 			} catch (e) {
+                removeLoader();
                 $('#status').html(e.message).removeClass('hide');
                 return 0;
             }
@@ -140,9 +140,13 @@ function handleActions(response) {
         $('#status').html(response.message).removeClass('hide');
         return 0;
     }
+    $("#longUrl").val('');
+    $("#alias").val('');
     $("#shortUrl").val(response.shortUrl);
     removeLoader();
+    generateQRCode(response.shortUrl);
     $('#shortUrlContainer').removeClass('hide');
+    
 }
 
 function loading(){
@@ -151,4 +155,11 @@ function loading(){
 
 function removeLoader(){
     $('#shortenBtn').html('Shorten');
+}
+
+function generateQRCode(shortUrl) {
+    $("#qrImage")
+        .attr("src", 'http://chart.apis.google.com/chart?cht=qr&chs=180x180&choe=UTF-8&chld=H|0&chl=' + shortUrl );
+    $('#qrImage')
+        .removeClass('hide');
 }
